@@ -9,7 +9,7 @@ const orderdetailRouter = require("./orderdetailRouter");
 const checkoutRouter = require("./checkoutRouter");
 
 function route(app){
-    app.use("/api",checkoutRouter)
+    app.use("/api/checkout",checkoutRouter)
     app.use("/api/user",userRouter)
     app.use("/api/auth",authRouter)
     app.use("/api/product",productRouter)
