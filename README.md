@@ -91,7 +91,7 @@ Giải thích nhanh về các thư mục chính trong dự án:
 │-- /models          # Mô hình dữ liệu (MongoDB)
 │-- /routes          # Định tuyến API
 │-- /utils           # Các hàm tiện ích
-│-- server.js        # Điểm khởi đầu của app
+│-- app.js        # Điểm khởi đầu của app
 .env                 # Biến môi trường
 README.md            # Tài liệu dự án
 ```
