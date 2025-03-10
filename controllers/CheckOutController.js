@@ -39,10 +39,13 @@ class CheckOutController {
           
           // Xóa giỏ hàng sau khi checkout (nếu muốn)
           await Cart.deleteMany({ user_id });
-          
+          //xu li phuong thuc thanh toan 
+
           const populatedOrder = await Order.findById(savedOrder._id)
             .populate('user_id', 'username email')
             .populate('payment_id', 'name');
+
+
           
           res.status(201).json({
             message: 'Checkout successful',

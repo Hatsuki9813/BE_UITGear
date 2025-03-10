@@ -7,12 +7,14 @@ const categoryRouter = require("./categoryRouter");
 const orderRouter = require("./orderRouter");
 const orderdetailRouter = require("./orderdetailRouter");
 const checkoutRouter = require("./checkoutRouter");
+const paymentRouter = require("./paymentRouter");
 
 function route(app){
     app.use("/api/checkout",checkoutRouter)
     app.use("/api/user",userRouter)
     app.use("/api/auth",authRouter)
     app.use("/api/product",productRouter)
+    app.use("/api/payment",paymentRouter)
     app.use("/api/cart",cartRouter)
     app.use("/api/brand",brandRouter)
     app.use("/api/category",categoryRouter)
