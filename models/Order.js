@@ -4,6 +4,8 @@ require('mongoose-timestamp');
 const orderSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   order_status: { type: String, default: 'pending', enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] },
+  payment_status: { type: String, default: "false",},
+  checkout_id: { type: String },
   total_price: { type: Number, required: true },
   payment_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment_method' },
 },{timestamps:true});

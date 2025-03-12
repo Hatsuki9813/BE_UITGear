@@ -1,16 +1,22 @@
-const userRouter = require("./userRouter");
-const authRouter = require("./authRouter");
-const productRouter = require("./productRouter");
-const cartRouter = require("./cartRouter");
-const brandRouter = require("./brandRouter");
-const categoryRouter = require("./categoryRouter");
-const orderRouter = require("./orderRouter");
-const orderdetailRouter = require("./orderdetailRouter");
-const checkoutRouter = require("./checkoutRouter");
-const paymentRouter = require("./paymentRouter");
+const userRouter = require("./UserRouter");
+const authRouter = require("./AuthRouter");
+const productRouter = require("./ProductRouter");
+const cartRouter = require("./CartRouter");
+const brandRouter = require("./BrandRouter");
+const categoryRouter = require("./CategoryRouter");
+const orderRouter = require("./OrderRouter");
+const orderdetailRouter = require("./OrderDetailRouter");
+const checkoutRouter = require("./CheckOutRouter");
+const paymentRouter = require("./PaymentRouter");
+const viewedRouter = require("./ViewedRouter");
+const promotecodeRouter = require("./PromoteCodeRouter");
+const ProductDetailRouter = require("./ProductDetailRouter");
 
 function route(app){
+    app.use("/api/product/detail",ProductDetailRouter)
     app.use("/api/checkout",checkoutRouter)
+    app.use("/api/viewed",viewedRouter)
+    app.use("/api/promote_code",promotecodeRouter)
     app.use("/api/user",userRouter)
     app.use("/api/auth",authRouter)
     app.use("/api/product",productRouter)
