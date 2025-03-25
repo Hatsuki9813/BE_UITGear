@@ -5,6 +5,7 @@ const session = require('express-session');
 var logger = require('morgan');
 var route = require("./routes");
 const connectDB = require('./config/db');
+const cors = require("cors");
 const passport = require('passport');
 require('./config/auth');
 var app = express();
@@ -25,6 +26,7 @@ app.use((err, req, res, next) => {
     res.status(500).send('Đã xảy ra lỗi trên server.');
   });
 // view engine setup
+app.use(cors());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(express.json());

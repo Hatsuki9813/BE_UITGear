@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String, unique: true, sparse: true },
   username: { type: String, required:  function() { return !this.googleId; } , trim: true,unique: true , },
   password_hash: { type: String, required: function() { return !this.googleId; }  },
-  fullname: { type: String, trim: true,default: "" },
+  fullname: { type: String, required:  function() { return !this.googleId; },trim: true,default: "" },
   dob: { type: Date , default: "" },
   gender: { type: String, enum: ['Male', 'Female', 'Other'], default: 'Other' },
   address: { type: String,default: "" },
@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   otp: { type: String }, // Mã OTP (nếu có)
   otpExpiry:{type: Date, default: ""},
   is_active: { type: Boolean, default: false },
+  phone: { type: String, default: "" },
 },{timestamps:true});
 
 // Tạo index cho email (tìm kiếm nhanh)

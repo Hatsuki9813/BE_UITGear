@@ -5,35 +5,43 @@ const nodemailer = require("nodemailer");
 const passport = require("passport");
 require("../config/auth");
 class AuthController {
-  async register(req, res) {
+  async  register(req, res) {
     try {
-      const { email, username, password_hash } = req.body;
-
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
+      const { email, phone, name, password } = req.body;
+  
+      // Kiểm tra email đã tồn tại chưa
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
         return res.status(400).json({ message: "Email đã được sử dụng" });
       }
-
-      const existingUsername = await User.findOne({ username });
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username đã được sử dụng" });
+  
+      // Kiểm tra số điện thoại đã tồn tại chưa
+      const existingPhone = await User.findOne({ phone });
+      if (existingPhone) {
+        return res.status(400).json({ message: "Số điện thoại đã được sử dụng" });
       }
-
-      const hashedPassword = await bcrypt.hash(password_hash, 10);
-
+  
+      // Mã hóa mật khẩu
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Tạo mã OTP 6 chữ số (hết hạn sau 15 phút)
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
-
+  
+      // Tạo user mới
       const newUser = new User({
+        username: email,
         email,
-        username,
+        phone,
+        fullname:name,
         password_hash: hashedPassword,
         otp,
         otpExpiry,
+        is_active: false, // Đánh dấu chưa xác minh
       });
-
+  
       await newUser.save();
-
+  
       // Gửi email chứa mã OTP
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -42,20 +50,19 @@ class AuthController {
           pass: process.env.EMAIL_PASS,
         },
       });
-
+  
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
-        subject: "Mã OTP xác thực tài khoản",
-        text: `Mã OTP của bạn là: ${otp}`,
+        subject: "Xác thực tài khoản - UITGear",
+        text: `Mã OTP của bạn là: ${otp} (có hiệu lực trong 15 phút).`,
       });
-
+  
       res.status(201).json({
-        message:
-          "Đăng ký thành công. Vui lòng kiểm tra email để kích hoạt tài khoản.",
+        message: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ message: "Lỗi server: " + err.message });
     }
   }
   async verifyOtp(req, res) {
@@ -123,11 +130,11 @@ class AuthController {
     }
   }
   async login(req, res) {
-    const { identifier, password } = req.body;
-    console.log("", identifier, password);
+    const { email, password } = req.body;
+    console.log("", email, password);
     try {
       const user = await User.findOne({
-        $or: [{ email: identifier }, { username: identifier }],
+        email: email ,
       });
 
       if (!user) {
@@ -147,6 +154,7 @@ class AuthController {
       });
 
       res.status(200).json({ token });
+      console.log("token", token);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
