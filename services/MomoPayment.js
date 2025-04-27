@@ -2,7 +2,6 @@ const crypto = require("crypto");
 const axios = require("axios");
 const Order = require("../models/Order");
 
-
 class MomoService {
   static async createPaymentRequest({
     amount,
@@ -69,22 +68,24 @@ class MomoService {
   }
 
   static async momoCallBack(req, res) {
-    console.log("Received Callback:", req.query); // Log thông tin chi tiết callback
     const { orderInfo, resultCode, message } = req.query;
-    console.log("orderInfo: ", orderInfo);
+    console.log("orderInfo", orderInfo);
     if (resultCode === "0") {
       const order = await Order.findById(orderInfo);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
+
       order.payment_status = message;
       await order.save();
-      return res.status(200).json({ message: message });
+
+      return res
+        .status(200)
+        .json({ message: "Payment successful", orderId: order._id });
     } else {
       return res.status(400).json({ message: message });
     }
   }
-
   static async transactionStatus(req, res) {
     const { orderId } = req.query;
     const partnerCode = process.env.MOMO_PARTNER_CODE;

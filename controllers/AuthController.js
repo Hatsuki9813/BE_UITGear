@@ -5,43 +5,45 @@ const nodemailer = require("nodemailer");
 const passport = require("passport");
 require("../config/auth");
 class AuthController {
-  async  register(req, res) {
+  async register(req, res) {
     try {
       const { email, phone, name, password } = req.body;
-  
+      console.log("Register request received", req.body);
       // Kiểm tra email đã tồn tại chưa
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ message: "Email đã được sử dụng" });
       }
-  
+
       // Kiểm tra số điện thoại đã tồn tại chưa
       const existingPhone = await User.findOne({ phone });
       if (existingPhone) {
-        return res.status(400).json({ message: "Số điện thoại đã được sử dụng" });
+        return res
+          .status(402)
+          .json({ message: "Số điện thoại đã được sử dụng" });
       }
-  
+
       // Mã hóa mật khẩu
       const hashedPassword = await bcrypt.hash(password, 10);
-  
+
       // Tạo mã OTP 6 chữ số (hết hạn sau 15 phút)
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
-  
+
       // Tạo user mới
       const newUser = new User({
         username: email,
         email,
         phone,
-        fullname:name,
+        fullname: name,
         password_hash: hashedPassword,
         otp,
         otpExpiry,
         is_active: false, // Đánh dấu chưa xác minh
       });
-  
+
       await newUser.save();
-  
+
       // Gửi email chứa mã OTP
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -50,16 +52,17 @@ class AuthController {
           pass: process.env.EMAIL_PASS,
         },
       });
-  
+
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
         subject: "Xác thực tài khoản - UITGear",
         text: `Mã OTP của bạn là: ${otp} (có hiệu lực trong 15 phút).`,
       });
-  
+
       res.status(201).json({
-        message: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+        message:
+          "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
       });
     } catch (err) {
       res.status(500).json({ message: "Lỗi server: " + err.message });
@@ -67,7 +70,7 @@ class AuthController {
   }
   async verifyOtp(req, res) {
     const { email, otp } = req.body;
-
+    console.log("otp recieved", req.body);
     try {
       const user = await User.findOne({ email });
       if (!user) {
@@ -134,7 +137,7 @@ class AuthController {
     console.log("", email, password);
     try {
       const user = await User.findOne({
-        email: email ,
+        email: email,
       });
 
       if (!user) {
@@ -153,13 +156,15 @@ class AuthController {
         expiresIn: "1h",
       });
 
-      res.status(200).json({ token });
+      res.status(200).json({ user, token });
       console.log("token", token);
+      console.log("user", user);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  } 
+  }
   async forgetPassword(req, res) {
+    console.log("Forget password request received", req.body);
     const { email } = req.body;
     try {
       const user = await User.findOne({ email });
@@ -200,21 +205,14 @@ class AuthController {
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
-  } 
+  }
   async resetPassword(req, res) {
-    const { email, otp, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
     try {
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(404).json({ message: "Email không tồn tại." });
-      }
-
-      // Kiểm tra OTP và hạn sử dụng
-      if (user.otp !== otp || user.otpExpiry < Date.now()) {
-        return res
-          .status(400)
-          .json({ message: "OTP không hợp lệ hoặc đã hết hạn." });
       }
 
       // Hash mật khẩu mới
@@ -291,39 +289,123 @@ class AuthController {
       { failureRedirect: "/" },
       async (err, user) => {
         if (err || !user) {
-          return res
-            .status(400)
-            .json({ message: "Đăng nhập Google thất bại." });
+          return res.send(`<script>
+          window.opener.postMessage({ error: 'Google login failed' }, '*');
+          window.close();
+        </script>`);
         }
 
         try {
-          const { id, displayName, emails,photo } = user;
+          const { sub, name, email, picture } = user._json;
 
-          let existingUser = await User.findOne({ googleId: id });
+          let existingUser = await User.findOne({ googleId: sub });
           if (!existingUser) {
             existingUser = new User({
-              googleId: id,
-              fullname: displayName,
-              email: emails[0].value,
-              image: photo
+              googleId: sub,
+              fullname: name,
+              email,
+              image: picture,
             });
             await existingUser.save();
           }
 
-          // Tạo token JWT
+          console.log("User after Google login:", existingUser);
+
           const token = jwt.sign(
-            { userId: existingUser._id },
+            { id: existingUser._id },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            {
+              expiresIn: "1h",
+            }
           );
 
-          res.status(200).json({ token });
+          console.log("Google login token:", token);
+
+          // Gửi token và user info về frontend
+          return res.send(`<script>
+          window.opener.postMessage({
+            token: "${token}",
+            user: {
+              name: ${JSON.stringify(name)},
+              email: ${JSON.stringify(email)},
+              picture: ${JSON.stringify(picture)}
+            }
+          }, "*");
+          window.close();
+        </script>`);
         } catch (error) {
-          console.error('Login error:', error);
-          res.status(500).json({ message: "Đã xảy ra lỗi, vui lòng thử lại." });
+          console.error("Google callback error:", error);
+          return res.send(`<script>
+          window.opener.postMessage({ error: "Internal error" }, "*");
+          window.close();
+        </script>`);
         }
       }
     )(req, res, next);
+  }
+
+  async callBackFacebook(req, res, next) {
+    console.log("Facebook callback triggered");
+
+    passport.authenticate(
+      "facebook",
+      { failureRedirect: "/" },
+      async (err, user) => {
+        console.log("Inside passport.authenticate callback");
+
+        // Kiểm tra lỗi và thông tin người dùng
+        if (err) {
+          console.log("Error during Facebook authentication:", err);
+        }
+        if (!user) {
+          console.log("User not found:", user);
+          return res.send(safeSend({ error: "Facebook login failed" }));
+        }
+
+        // Tạo JWT token
+        try {
+          const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+            expiresIn: "1h",
+          });
+
+          console.log("User after Facebook login:", user);
+
+          // Dữ liệu gửi về phía client
+          const dataToSend = {
+            token,
+            user: {
+              name: user.fullname,
+              email: user.email,
+              picture: user.image,
+            },
+          };
+
+          return res.send(safeSend(dataToSend));
+        } catch (error) {
+          console.error("Error creating JWT token:", error);
+          return res.send(safeSend({ error: "Internal error" }));
+        }
+      }
+    )(req, res, next);
+
+    // Hàm trả về dữ liệu tới cửa sổ mở
+    function safeSend(data) {
+      console.log("Sending response:", data); // Debugging
+
+      return `
+      <script>
+        (function() {
+          const payload = ${JSON.stringify(data)};
+          if (window.opener) {
+            window.opener.postMessage(payload, "*");
+            window.close();
+          } else {
+            window.close();
+          }
+        })();
+      </script>
+    `;
+    }
   }
 }
 

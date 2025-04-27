@@ -1,39 +1,52 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-const session = require('express-session');
-var logger = require('morgan');
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+const session = require("express-session");
+var logger = require("morgan");
 var route = require("./routes");
-const connectDB = require('./config/db');
+const connectDB = require("./config/db");
 const cors = require("cors");
-const passport = require('passport');
-require('./config/auth');
+const passport = require("passport");
+require("./config/auth");
 var app = express();
 
-app.use(session({
+// Cấu hình CORS với các tùy chọn phù hợp cho session và credentials
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Chỉ định domain của frontend
+    methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức được phép
+    allowedHeaders: ["Content-Type", "Authorization"], // Các headers được phép
+    credentials: true, // Cho phép cookies và credentials
+  })
+);
+
+app.use(
+  session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } 
-  }));
+    cookie: { secure: false }, // Đảm bảo secure: false khi bạn không sử dụng HTTPS trong môi trường phát triển
+  })
+);
 
-  // Passport middleware
-app.use(passport.initialize())
-app.use(passport.session())
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((err, req, res, next) => {
-    console.error('Error stack:', err.stack);
-    res.status(500).send('Đã xảy ra lỗi trên server.');
-  });
+  console.error("Error stack:", err.stack);
+  res.status(500).send("Đã xảy ra lỗi trên server.");
+});
+
 // view engine setup
-app.use(cors());
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "jade");
 app.use(express.json());
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
+
 connectDB();
 route(app);
 
