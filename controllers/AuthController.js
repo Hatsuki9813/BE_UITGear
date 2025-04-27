@@ -61,8 +61,7 @@ class AuthController {
       });
 
       res.status(201).json({
-        message:
-          "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+        message: "Đăng ký thành công!",
       });
     } catch (err) {
       res.status(500).json({ message: "Lỗi server: " + err.message });
