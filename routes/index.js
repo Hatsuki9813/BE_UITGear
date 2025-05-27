@@ -9,7 +9,7 @@ const checkoutRouter = require("./CheckOutRouter");
 const paymentRouter = require("./PaymentRouter");
 const viewedRouter = require("./ViewedRouter");
 const promotecodeRouter = require("./PromoteCodeRouter");
-
+const questionRouter = require("./questionRouter");
 function route(app) {
   app.use("/api/checkout", checkoutRouter);
   app.use("/api/viewed", viewedRouter);
@@ -27,6 +27,7 @@ function route(app) {
   // app.use("/api/favourite",favouriteRouter)
   // app.use("/api/checkout",checkOutRouter)
   // app.use("/api/upload",upload)
+  app.use("/api/question", questionRouter);
 }
 
 module.exports = route;
