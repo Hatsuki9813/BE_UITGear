@@ -7,7 +7,7 @@ const MomoService = require("../services/MomoPayment");
 class CheckOutController {
   async checkoutCart(req, res) {
     try {
-      const { user_id, payment_name, shipping_address } = req.body;
+      const { user_id, payment_name, shipping_address, pr } = req.body;
       console.log(req.body, "req body");
       if (!user_id || !shipping_address) {
         return res.status(401).json({ message: "Missing required fields" });
@@ -31,9 +31,13 @@ class CheckOutController {
         price: item.total_price,
       }));
       console.log(orderDetails, "checkout orderDetail");
-      const total_price = orderDetails.reduce((sum, item) => {
+      {/*const total_price = orderDetails.reduce((sum, item) => {
         return sum + item.quantity * item.price;
-      }, 0);
+      }, 0);*/}
+      const total_price = pr;
+      if (typeof total_price !== "number" || total_price <= 0) {
+        return res.status(406).json({ message: "Invalid total price" });
+      }
       console.log(total_price);
       const order = new Order({
         user_id,
