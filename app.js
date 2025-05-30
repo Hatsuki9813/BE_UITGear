@@ -12,21 +12,21 @@ var app = express();
 
 // Cấu hình CORS với các tùy chọn phù hợp cho session và credentials
 app.use(
-  cors({
-    origin: "http://localhost:5173", // Chỉ định domain của frontend
-    methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức được phép
-    allowedHeaders: ["Content-Type", "Authorization"], // Các headers được phép
-    credentials: true, // Cho phép cookies và credentials
-  })
+    cors({
+        origin: "http://localhost:5173", // Chỉ định domain của frontend
+        methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức được phép
+        allowedHeaders: ["Content-Type", "Authorization"], // Các headers được phép
+        credentials: true, // Cho phép cookies và credentials
+    })
 );
 
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }, // Đảm bảo secure: false khi bạn không sử dụng HTTPS trong môi trường phát triển
-  })
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false }, // Đảm bảo secure: false khi bạn không sử dụng HTTPS trong môi trường phát triển
+    })
 );
 
 // Passport middleware
@@ -34,8 +34,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use((err, req, res, next) => {
-  console.error("Error stack:", err.stack);
-  res.status(500).send("Đã xảy ra lỗi trên server.");
+    console.error("Error stack:", err.stack);
+    res.status(500).send("Đã xảy ra lỗi trên server.");
 });
 
 // view engine setup
