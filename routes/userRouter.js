@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const UserController = require("../controllers/UserController");
 
-router.get("/", UserController.getAllUser);
+router.get("/query/:query/:page", UserController.getUserByQuery);
 router.put("/", UserController.updateUserByEmail);
 router.post("/shipping-addresses", UserController.createShippingAddress);
 router.put("/shipping-addresses", UserController.updateShippingAddress);

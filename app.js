@@ -1,19 +1,19 @@
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
 const session = require("express-session");
-var logger = require("morgan");
-var route = require("./routes");
+const logger = require("morgan");
+const route = require("./routes");
 const connectDB = require("./config/db");
 const cors = require("cors");
 const passport = require("passport");
 require("./config/auth");
-var app = express();
+const app = express();
 
 // Cấu hình CORS với các tùy chọn phù hợp cho session và credentials
 app.use(
     cors({
-        origin: "http://localhost:5173", // Chỉ định domain của frontend
+        origin: ["http://localhost:5173", "http://localhost:5174"], // Chỉ định domain của frontend
         methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức được phép
         allowedHeaders: ["Content-Type", "Authorization"], // Các headers được phép
         credentials: true, // Cho phép cookies và credentials

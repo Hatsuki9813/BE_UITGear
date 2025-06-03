@@ -1,10 +1,36 @@
 const User = require("../models/User");
 
 class UserController {
-    async getAllUser(req, res) {
+    async getUserByQuery(req, res) {
         try {
-            const users = await User.find();
-            res.status(200).json(users);
+            const { query } = req.params;
+
+            if (!query || query.trim() === "") {
+                return res.status(400).json({ message: "Query is required" });
+            }
+
+            let { page } = req.params;
+            page = parseInt(page) || 1;
+            const limit = 20;
+            const skip = (page - 1) * limit;
+
+            const searchRegex = new RegExp(query, "i");
+
+            const users = await User.find({
+                $or: [
+                    { email: searchRegex },
+                    { fullname: searchRegex },
+                    { phone: searchRegex },
+                    { address: searchRegex },
+                ],
+            })
+                .skip(skip)
+                .limit(limit);
+
+            const totalUsers = users.length;
+            const totalPages = Math.ceil(totalUsers / limit);
+
+            res.status(200).json({ users, totalUsers, totalPages, page });
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
