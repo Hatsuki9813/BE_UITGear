@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 
@@ -10,6 +12,50 @@ class OrderController {
                 return res.status(404).json({ message: "Order not found" });
             }
             return res.status(200).json(order);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    };
+
+    queryOrder = async (req, res) => {
+        try {
+            const { query } = req.params;
+            const limit = 20;
+            const page = parseInt(req.params.page) || 1;
+            const skip = (Number(page) - 1) * limit;
+
+            let objectIdQuery = null;
+            if (mongoose.Types.ObjectId.isValid(query)) {
+                objectIdQuery = new mongoose.Types.ObjectId(String(query));
+            }
+
+            const orders = await Order.find({
+                $or: [
+                    ...(objectIdQuery ? [{ _id: objectIdQuery }] : []),
+                    { "shipping_address.name": { $regex: query, $options: "i" } },
+                    { "shipping_address.phone": { $regex: query, $options: "i" } },
+                    { "shipping_address.address": { $regex: query, $options: "i" } },
+                    { "shipping_address.note": { $regex: query, $options: "i" } },
+                    { "shipping_address.email": { $regex: query, $options: "i" } },
+                ],
+            })
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 });
+
+            console.log(orders, "Orders found");
+
+            const totalOrders = orders.length;
+
+            const totalPages = Math.ceil(totalOrders / limit);
+
+            return res.status(200).json({
+                orders,
+                page,
+                totalPages,
+                totalOrders,
+            });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Internal server error" });
@@ -53,17 +99,14 @@ class OrderController {
         }
     };
 
-    updateOrder = async (req, res) => {
+    updateOrderStatus = async (req, res) => {
         try {
             const { orderId } = req.params;
-            console.log(orderId, "orderId");
             const { order_status } = req.body;
-            console.log(order_status, "order_status");
             const order = await Order.findByIdAndUpdate(orderId, { order_status }, { new: true });
-            console.log(order, "order");
-            if (!order) {
-                return res.status(404).json({ message: "Order not found" });
-            }
+
+            if (!order) return res.status(404).json({ message: "Order not found" });
+
             return res.status(200).json(order);
         } catch (error) {
             console.error(error);

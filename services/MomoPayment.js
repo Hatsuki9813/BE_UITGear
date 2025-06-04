@@ -62,12 +62,10 @@ class MomoService {
 
     static async momoCallBack(req, res) {
         const { orderInfo, resultCode, message, extraData } = req.body;
+        const order = await Order.findById(orderInfo);
 
         if (resultCode == "0") {
-            const order = await Order.findById(orderInfo);
-            if (!order) {
-                return res.status(404).json({ message: "Order not found" });
-            }
+            if (!order) return res.status(404).json({ message: "Order not found" });
 
             try {
                 const decoded = Buffer.from(extraData, "base64").toString("utf8");
@@ -79,11 +77,12 @@ class MomoService {
                 console.error("Không giải mã được extraData", err.message);
             }
 
-            order.payment_status = message;
+            order.payment_status = "Đã thanh toán";
             await order.save();
 
             return res.status(200).json({ message: "Payment successful", orderId: order._id });
         } else {
+            await Order.findOneAndDelete({ _id: orderInfo });
             return res.status(400).json({ message: message });
         }
     }
