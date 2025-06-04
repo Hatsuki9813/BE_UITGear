@@ -1,6 +1,23 @@
 const User = require("../models/User");
 
 class UserController {
+    async getAllUsers(req, res) {
+        try {
+            let { page } = req.params;
+            page = parseInt(page) || 1;
+            const limit = 20;
+            const skip = (page - 1) * limit;
+
+            const users = await User.find().skip(skip).limit(limit);
+            const totalUsers = await User.countDocuments();
+            const totalPages = Math.ceil(totalUsers / limit);
+
+            res.status(200).json({ users, totalUsers, totalPages, page });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    }
+
     async getUserByQuery(req, res) {
         try {
             const { query } = req.params;

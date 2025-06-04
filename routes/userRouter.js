@@ -9,5 +9,6 @@ router.put("/shipping-addresses", UserController.updateShippingAddress);
 router.delete("/shipping-addresses", UserController.deleteShippingAddress);
 router.get("/:id", UserController.getUserById);
 router.delete("/:id", UserController.deleteUserById);
+router.get("/all/:page", UserController.getAllUsers);
 
 module.exports = router;
