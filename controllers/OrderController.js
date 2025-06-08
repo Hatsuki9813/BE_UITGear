@@ -38,8 +38,7 @@ class OrderController {
                     { "shipping_address.address": { $regex: query, $options: "i" } },
                     { "shipping_address.note": { $regex: query, $options: "i" } },
                     { "shipping_address.email": { $regex: query, $options: "i" } },
-                    { order_status: { $regex: query } }  // ✅ Thêm dòng này
-
+                    { payment_status: { $regex: query } },
                 ],
             })
                 .skip(skip)
