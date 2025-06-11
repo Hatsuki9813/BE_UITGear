@@ -25,8 +25,8 @@ class AuthController {
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // Tạo mã OTP 6 chữ số (hết hạn sau 15 phút)
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
+            // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            // const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
             // Tạo user mới
             const newUser = new User({
@@ -35,28 +35,26 @@ class AuthController {
                 phone,
                 fullname: name,
                 password_hash: hashedPassword,
-                otp,
-                otpExpiry,
-                is_active: false, // Đánh dấu chưa xác minh
+                is_active: true,
             });
 
             await newUser.save();
 
             // Gửi email chứa mã OTP
-            const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS,
-                },
-            });
+            // const transporter = nodemailer.createTransport({
+            //     service: "gmail",
+            //     auth: {
+            //         user: process.env.EMAIL_USER,
+            //         pass: process.env.EMAIL_PASS,
+            //     },
+            // });
 
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: email,
-                subject: "Xác thực tài khoản - UITGear",
-                text: `Mã OTP của bạn là: ${otp} (có hiệu lực trong 15 phút).`,
-            });
+            // await transporter.sendMail({
+            //     from: process.env.EMAIL_USER,
+            //     to: email,
+            //     subject: "Xác thực tài khoản - UITGear",
+            //     text: `Mã OTP của bạn là: ${otp} (có hiệu lực trong 15 phút).`,
+            // });
 
             res.status(201).json({
                 message: "Đăng ký thành công!",
